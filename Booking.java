@@ -2,7 +2,7 @@ import java.util.*;
 /* maybe make constants out of it */
 class Global {
     public static int speed = 10;
-    public static int number_of_cabs = 5;
+    public static int numberOfCabs = 5;
 }
 
 class Location {
@@ -19,13 +19,20 @@ class Location {
         return mod(location.coordinate[0] - this.coordinate[0]) + mod(location.coordinate[1] - this.coordinate[1]);
     }
     public void setNewLocation(int x2, int y2){
-    coordinate[0] = x2;
-    coordinate[1] = y2;
+        coordinate[0] = x2;
+        coordinate[1] = y2;
     }
     public void setNewLocation(Location location){
-    coordinate[0] = location.coordinate[0];
-    coordinate[1] = location.coordinate[1];
+        coordinate[0] = location.coordinate[0];
+        coordinate[1] = location.coordinate[1];
     }
+}
+
+class Landmark extends Location{
+}
+
+class City{
+    Landmark[] locations;
 }
 
 interface Drives {
@@ -36,7 +43,6 @@ interface Drives {
 class Driver{
     int id;
     ArrayList<Integer> ratings;
-
 
     public void retrieveBooking(){
         /* make a file for a driver
@@ -59,13 +65,13 @@ class Driver{
 
 class Cab extends Location {
     public int uniqueRegistration;
-    public int rating_count;
-    public float rating_average;
+    public int ratingCount;
+    public float ratingAverage;
     public boolean busy;
 
     Cab() {
-        this.rating_average = 0;
-        this.rating_count = 0;
+        this.ratingAverage = 0;
+        this.ratingCount = 0;
     }
 }
 
@@ -78,8 +84,29 @@ class Cab_manager {
 }
 
 class Booking{
-    Cab[] cabs;
+    Cab cab;
+    Customer customer;
+    Location destination;
+    Location pickup;
+    int fare;
     
+    public void setDestination(Location destination){
+        this.destination = destination;
+    }
+    public void setPickup(Location pickup){
+        this.pickup = pickup;
+    }
+    public int generateFare(){}
+    public void saveBooking(){
+        /* save it in a file named by the driver's name */
+    }
+
+}
+
+class Customer{
+    int id;
+    public void book(){}
+    public void rate(){}
 }
 
 class Solution{
