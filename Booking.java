@@ -1,3 +1,6 @@
+//henlo
+
+
 import java.util.*;
 /* maybe make constants out of it */
 class Global {
