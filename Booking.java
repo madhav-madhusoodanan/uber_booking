@@ -1,7 +1,6 @@
-//henlo
-
-
+import java.io.*;
 import java.util.*;
+
 /* maybe make constants out of it */
 class Global {
     public static int speed = 10;
@@ -29,13 +28,23 @@ class Location {
         coordinate[0] = location.coordinate[0];
         coordinate[1] = location.coordinate[1];
     }
+    public String toString(){
+        return this.coordinate[0] + " " + this.coordinate[1];
+    }
 }
 
 class Landmark extends Location{
 }
 
 class City{
-    Landmark[] locations;
+    Location[] objects;
+    
+    @Override
+    public String toString(){
+    	/* show the grid points, at each point show the object which are at that point 
+    	   this function will be called multiple times, to show the map animation (driver moving from point A to point B with/without customer)
+    	*/
+    }
 }
 
 interface Drives {
@@ -44,7 +53,8 @@ interface Drives {
 }
 
 class Driver{
-    int id;
+    String id;
+    String password;
     ArrayList<Integer> ratings;
 
     public void retrieveBooking(){
@@ -61,6 +71,9 @@ class Driver{
     public void rate(int rate){
         ratings.add(rate);
     }
+    public bool login(String id, String passowrd){
+        return id == this.id && password == this.password;
+    }
 }
 
 
@@ -76,6 +89,9 @@ class Cab extends Location {
         this.ratingAverage = 0;
         this.ratingCount = 0;
     }
+    public void searchBookings(){
+        
+    }
 }
 
 class Cab_manager {
@@ -87,37 +103,92 @@ class Cab_manager {
 }
 
 class Booking{
-    Cab cab;
+    String cabId;
     Customer customer;
-    Location destination;
     Location pickup;
-    int fare;
+    Location destination;
+    float fare;
     
+    Booking(String cabId, Customer customer, Location pickup, Location destination){
+        this.cabId = cabId;
+        this.customer = customer;
+        this.pickup = pickup;
+        this.destination = destination;
+    }
+
     public void setDestination(Location destination){
         this.destination = destination;
     }
     public void setPickup(Location pickup){
         this.pickup = pickup;
     }
-    public int generateFare(){}
+    void saveFare(int fare){
+        this.fare = fare;
+    }
+
+    public float generateFare(){
+        float fare;
+        /* do calculations for fare */
+
+        saveFare(fare);
+    }
     public void saveBooking(){
         /* save it in a file named by the driver's name */
+        File file = new File("bookings/" + cab.uniqueRegistration + ".txt");
+        if (!file.exists()) { 
+            file.createNewFile();
+            FileWriter writer = new FileWriter(file);
+            writer.write("Test data");
+            writer.close();
+            System.out.println("Booking successful");
+        } else {
+            System.out.println("Cab booked already :(");
+        } 
+    }
+    public String toString(){
+        return cabId + " " + customer.id + " " + pickup.toString() + " " + destination.toString() + " " + fare;
+    }
+    public static Booking fromString(String encoding){
+        String[] properties =  encoding.split(" ");
+        Customer customer = new Customer(properties[1]);
+        Location destination = new Location();
+        Location pickup = new 
+
     }
 
 }
 
-class Customer{
-    int id;
+class Customer extends Location {
+    String id;
+    String password;
+    
+    Customer(String id){
+        /* the string must purely be a number */
+        this.id = Integer.parseInt(id);
+    }
     public void book(){}
     public void rate(){}
+    public bool login(String id, String passowrd){
+        return id == this.id && password == this.password;
+    }
 }
 
 class Solution{
+	public static void Join(Scanner sc, HashMap<String, String> details){
+		System.out.print("Enter username: ");
+		String username = sc.nextInt();
+		
+		System.out.print("Enter password: ");
+		String password = sc.nextInt();
+		
+		/* check hashmap if that user exists. if it does then login, else signup */
+	}
     public static void main(String[] args){
-
+    	Scanner sc = new Scanner(System.in);
+    	int option = 0;
+    	
+    	/* option as 2 means exit */
+	do{} while (option != 2);
     }
 }
 
-/* Logic
-
-1.  Location is an abstract class that will be inherited by all cabs, landmarks and the user */
