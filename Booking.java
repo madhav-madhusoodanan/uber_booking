@@ -172,7 +172,7 @@ class Customer extends Location {
 }
 
 class Solution{
-	public static void Join(Scanner sc, HashMap<String, String> details){
+	public static void join(Scanner sc, HashMap<String, String> details){
 		System.out.print("Enter username: ");
 		String username = sc.nextInt();
 		
@@ -181,6 +181,10 @@ class Solution{
 		
 		/* check hashmap if that user exists. if it does then login, else signup */
 	}
+    public static void intro(){
+        System.out.println("Join as? [Driver (D) / User(U)]");
+        System.out.print(">");
+    }
     public static void main(String[] args){
     	Scanner sc = new Scanner(System.in);
     	int option = 0;
@@ -198,7 +202,11 @@ class Solution{
                if login as user
                1. accept user destination
                2. show them the booking procedure (accept destination, pay fare)
-               3. */
+               3. 
+               
+               show help also, if user is confused*/
+
+
         } while (option != 2);
     }
 }
