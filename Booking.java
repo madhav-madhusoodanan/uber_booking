@@ -76,9 +76,6 @@ class Driver{
     }
 }
 
-
-
-
 class Cab extends Location {
     public int uniqueRegistration;
     public int ratingCount;
