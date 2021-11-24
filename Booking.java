@@ -104,7 +104,7 @@ class Booking{
     Customer customer;
     Location pickup;
     Location destination;
-    float fare;
+    int fare;
     
     Booking(String cabId, Customer customer, Location pickup, Location destination){
         this.cabId = cabId;
@@ -123,8 +123,8 @@ class Booking{
         this.fare = fare;
     }
 
-    public float generateFare(){
-        float fare;
+    public int generateFare(){
+        int fare;
         /* do calculations for fare */
 
         saveFare(fare);
@@ -158,6 +158,7 @@ class Booking{
 class Customer extends Location {
     String id;
     String password;
+    int money; /* in paise , not rupees */
     
     Customer(String id){
         /* the string must purely be a number */
@@ -185,7 +186,20 @@ class Solution{
     	int option = 0;
     	
     	/* option as 2 means exit */
-	do{} while (option != 2);
+	    do{
+            /* make the login/signup page 
+               
+               if login as driver:
+               1. show bookings
+               2. accept a booking
+               3. show the driving animation of all the grids
+               4. drive ended animation
+               
+               if login as user
+               1. accept user destination
+               2. show them the booking procedure (accept destination, pay fare)
+               3. */
+        } while (option != 2);
     }
 }
 
