@@ -129,7 +129,7 @@ class Driver{
 }
 
 class Cab extends Location {
-    public int uniqueRegistration;
+    public String uniqueRegistration;
     public int ratingCount;
     public float ratingAverage;
     public boolean busy;
@@ -178,6 +178,7 @@ class Booking{
     Location pickup;
     Location destination;
     int fare;
+    public static ArrayList<Booking> bookings;
     
     Booking(String cabId, Customer customer, Location pickup, Location destination){
         this.cabId = cabId;
@@ -271,7 +272,7 @@ class Solution{
         char reply = sc.next();
         return (reply == 'D' || reply == 'd');
     }
-    static void handleCustomer(Scanner sc, ArrayList<Customer> customers, ArrayList<Booking> bookings){
+    static int handleCustomer(Scanner sc, ArrayList<Customer> customers, ArrayList<Booking> bookings){
         /* handle the customer */
         Customer cust;
         bool tryAgain = false;
@@ -288,16 +289,50 @@ class Solution{
         System.out.println("Type the destination coordinates:");
         String destination = sc.nextLine().trim();
         Location dest = Location.fromString(destination);
+
         try{
-            
-            Booking booking = new Booking();
+            Cab cab = CabManager.getCab();
+            Booking booking = new Booking(cab.uniqueRegistration, cust, cust, dest);
+            System.out.println("\nBooking successful");
+            System.out.println("Wait for cab");
+            System.out.println("Press any key to logout");
+            sc.next();
         } catch(NoCabFoundException e){
             System.out.println("No cab available now :(");
         }
+        return 0;
         /* making a booking object */
     }
     static void handleDriver(ArrayList<Driver> drivers, ArrayList<Booking> bookings){
         /* handle the driver and the cab */
+        Driver driv;
+        bool tryAgain = false;
+
+        do {
+            try {
+                driv = join(sc, drivers);
+                tryAgain = false;
+            } catch (NoUserFoundException e){
+                tryAgain = true;
+            }
+        } while (tryAgain && cust != null);
+
+        System.out.println("Your bookings:");
+        for
+        String destination = sc.nextLine().trim();
+        Location dest = Location.fromString(destination);
+
+        try{
+            Cab cab = CabManager.getCab();
+            Booking booking = new Booking(cab.uniqueRegistration, cust, cust, dest);
+            System.out.println("\nBooking successful");
+            System.out.println("Wait for cab");
+            System.out.println("Press any key to logout");
+            sc.next();
+        } catch(NoCabFoundException e){
+            System.out.println("No cab available now :(");
+        }
+        return 0;
     }
     public static void main(String[] args){
     	Scanner sc = new Scanner(System.in);
