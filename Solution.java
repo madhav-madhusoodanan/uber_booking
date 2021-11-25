@@ -56,13 +56,9 @@ class Landmark extends Location{
 }
 
 class City{
-    public ArrayList<Location> objects;
-    
-    City(){
-        this.objects = new ArrayList<Location>();
-    }
+    public static ArrayList<Location> objects;
 
-    public String toString(){
+    public static String stringify(){
     	/* show the grid points, at each point show the object which are at that point 
     	   this function will be called multiple times, to show the map animation (driver moving from point A to point B with/without customer)
     	*/
@@ -72,7 +68,7 @@ class City{
         for(int i = 0; i < Global.gridSize; i++){
             for(int j = 0; j < Global.gridSize; j++){
                 str += "*";
-                for(Location obj:this.objects){
+                for(Location obj:objects){
                     if(obj.coordinate[0] == i && obj.coordinate[1] == j){
                         str += "," + obj.id;
                     }
@@ -92,7 +88,7 @@ class City{
         System.out.print("\033[H\033[2J");
 		System.out.flush();
 
-        this.toString();
+        stringify();
         try
         {
             /* wait for 1 second */
@@ -105,17 +101,25 @@ class City{
     }
 }
 
+interface Entity {
+    public boolean verify(String username, String password);
+}
+
 interface Drives {
     public float averageRating();
     public void rate(int rate);
     public void drive(Location location);
 }
 
-class Driver extends Location implements Drives {
-    String id;
+class Driver extends Location implements Drives, Entity {
     String password;
     ArrayList<Integer> ratings;
     String cabid;
+
+    Driver(String id){
+        super();
+        super.id = id;
+    }
 
     @Override
     public float averageRating(){
@@ -124,6 +128,11 @@ class Driver extends Location implements Drives {
             rating += i/(ratings.size());
         }
         return rating;
+    }
+
+    @Override
+    public boolean verify(String username, String password){
+        return username.equals(this.id) && this.password.equals(password);
     }
 
     @Override
@@ -136,13 +145,13 @@ class Driver extends Location implements Drives {
 
     @Override
     public void drive(Location destination){
-        while(this.distance(this.coordinate[0], destination.coordinate[1]) != this.distance(bk.destination)){
+        while(this.distance(this.coordinate[0], destination.coordinate[1]) != this.distance(destination)){
             City.update();
             int update = (destination.coordinate[0] > this.coordinate[0]) ? 1 : -1;
             this.setNewLocation(this.coordinate[0] + update, this.coordinate[1]);
         }
 
-        while(this.distance(bk.destination) != 0){
+        while(this.distance(destination) != 0){
             City.update();
             int update = (destination.coordinate[1] > this.coordinate[1]) ? 1 : -1;
             this.setNewLocation(this.coordinate[0], this.coordinate[1] + update);
@@ -179,13 +188,13 @@ class CabManager {
     CabManager(){
         this.cabs = new ArrayList<Cab>();
     }
-    public static double fare(Location pickup, Location destination) {
+    public static double generateFare(Location pickup, Location destination) {
         int busy = 0;
         double rate = LocalTime.now().isAfter(LocalTime.of(16, 0, 0)) ? 0.2 : 0.1;
         for(Cab cab:cabs){
             if(cab.isOccupied()) busy += 1;
         }
-        fare = (pickup.distance(destination)) * busy * rate;
+        double fare = (pickup.distance(destination)) * busy * rate;
         return fare;
     }
     public static Cab getCab() throws NoCabFoundException{
@@ -201,7 +210,7 @@ class Booking{
     Customer customer;
     Location pickup;
     Location destination;
-    int fare;
+    double fare;
     public static ArrayList<Booking> bookings;
     
     Booking(String cabId, Customer customer, Location pickup, Location destination){
@@ -218,12 +227,12 @@ class Booking{
     public void setPickup(Location pickup){
         this.pickup = pickup;
     }
-    void saveFare(int fare){
+    void saveFare(double fare){
         this.fare = fare;
     }
 
-    public int generateFare(){
-        saveFare(CabManager(this.pickup, this.destination));
+    public void generateFare(){
+        saveFare(CabManager.generateFare(this.pickup, this.destination));
     }
     public void saveBooking(){
         try {
@@ -237,31 +246,33 @@ class Booking{
         return cabId + " " + customer.id + " " + pickup.toString() + " " + destination.toString() + " " + fare;
     }
 
-    public static Booking fromString(String encoding){
-        String[] properties =  encoding.split(" ");
-        Customer customer = new Customer(properties[1]);
-        Location destination = new Location();
-    }
 }
 
-class Customer extends Location {
-    String id;
+class Customer extends Location implements Entity {
     String password;
-    int money; /* in paise , not rupees */
+    double money; 
     
     Customer(String id){
-        /* the string must purely be a number */
-        this.id = Integer.parseInt(id);
+        super();
+        super.id = id;
     }
     public void book(){}
     public void rate(){}
     public boolean login(String id, String passowrd){
         return id == this.id && password == this.password;
     }
+    public void pay(double fare){
+        this.money -= fare;
+    }
+
+    @Override
+    public boolean verify(String username, String password){
+        return username.equals(id) && this.password.equals(password);
+    }
 }
 
 class Solution{
-    static <T> T join(Scanner sc, ArrayList<T> details) throws NoUserFoundException {
+    static <T extends Entity> T join(Scanner sc, ArrayList<T> details) throws NoUserFoundException {
 		System.out.print("Enter username: ");
 		String username = sc.next().trim();
 		
@@ -270,7 +281,7 @@ class Solution{
 
         for(int i = 0; i < details.size(); i++){
             T detail = details.get(i);
-            if(detail.username.equals(username) && detail.password.equals(password)) return detail;
+            if(detail.verify(username, password)) return detail;
 
         }
 		throw new NoUserFoundException();
@@ -282,9 +293,8 @@ class Solution{
     static boolean intro(Scanner sc){
         System.out.println("Join as? [Driver (D) / User(U)]");
         System.out.print(">");
-
-        char reply = sc.next();
-        return (reply == 'D' || reply == 'd');
+        String reply = sc.next().trim();
+        return (reply.equals("D") || reply.equals("d"));
     }
     static int handleCustomer(Scanner sc, ArrayList<Customer> customers, ArrayList<Booking> bookings){
         /* handle the customer */
@@ -295,60 +305,66 @@ class Solution{
             try {
                 cust = join(sc, customers);
                 tryAgain = false;
+                System.out.println("Type the destination coordinates:");
+                String destination = sc.nextLine().trim();
+                Location dest = Location.fromString(destination);
+
+                try{
+                    Cab cab = CabManager.getCab();
+                    Booking booking = new Booking(cab.id, cust, cust, dest);
+                    System.out.println("\nBooking successful");
+                    System.out.println("Wait for cab");
+                    System.out.println("Press 2 to logout, or q to quit the program");
+
+                    if(sc.next().trim().equals("q")) System.exit(0);
+
+                } catch(NoCabFoundException e){
+                    System.out.println("No cab available now :(");
+                }
             } catch (NoUserFoundException e){
                 tryAgain = true;
             }
-        } while (tryAgain && cust != null);
+        } while (tryAgain);
 
-        System.out.println("Type the destination coordinates:");
-        String destination = sc.nextLine().trim();
-        Location dest = Location.fromString(destination);
-
-        try{
-            Cab cab = CabManager.getCab();
-            Booking booking = new Booking(cab.id, cust, cust, dest);
-            System.out.println("\nBooking successful");
-            System.out.println("Wait for cab");
-            System.out.println("Press 2 to logout, or q to quit the program");
-
-            if(sc.next().trim().equals("q")) System.exit(0);
-
-        } catch(NoCabFoundException e){
-            System.out.println("No cab available now :(");
-        }
         return 0;
         /* making a booking object */
     }
     static void handleDriver(Scanner sc, ArrayList<Driver> drivers, ArrayList<Booking> bookings){
         /* handle the driver and the cab */
         Driver driv;
-        Booking bk;
+        Booking bk = null;
         boolean tryAgain = false;
 
         do {
             try {
                 driv = join(sc, drivers);
                 tryAgain = false;
+                System.out.println("Your booking:");
+                for(Booking book:Booking.bookings){
+                    if(book.cabId == driv.id) {
+                        System.out.println(book);
+                        bk = book;
+                        break;
+                    }
+                }
+                if (bk == null) throw new NoUserFoundException();
+
+                System.out.println("");
+                System.out.print("Confirm mission? [y/n]");
+                if(sc.next().trim().equals("n")) return;
+
+                driv.drive(bk.pickup);
+                driv.drive(bk.destination);
+
+                System.out.println("Destination reached");
+                System.out.println("Press 2 to logout, or q to quit the program");
+
+                if(sc.next().trim().equals("q")) System.exit(0);
             } catch (NoUserFoundException e){
                 tryAgain = true;
             }
-        } while (tryAgain && cust != null);
+        } while (tryAgain);
 
-        System.out.println("Your booking:");
-        for(Booking bk:Booking.bookings){
-            if(bk.cabId == driv.id) System.out.println(bk);
-        }
-        System.out.println("");
-        System.out.print("Confirm mission? [y/n]");
-        if(sc.next().trim().equals("n")) return;
-
-        driv.drive(bk.pickup);
-        driv.drive(bk.destination);
-
-        System.out.println("Destination reached");
-        System.out.println("Press 2 to logout, or q to quit the program");
-
-        if(sc.next().trim().equals("q")) System.exit(0);
         
 
         /* try{
@@ -366,7 +382,7 @@ class Solution{
     	Scanner sc = new Scanner(System.in);
     	int option = 0;
     	ArrayList<Customer> customers = new ArrayList<Customer>();
-        ArrayList<Driver> drivers = new ArrayList<Customer>();
+        ArrayList<Driver> drivers = new ArrayList<Driver>();
         ArrayList<Booking> bookings = new ArrayList<Booking>();
     
 	    do{
@@ -386,7 +402,7 @@ class Solution{
                show help also, if user is confused
             */
 
-            boolean isCustomer = intro();
+            boolean isCustomer = intro(sc);
             if(isCustomer) handleCustomer(sc, customers, bookings);
             else handleDriver(sc, drivers, bookings);
 
