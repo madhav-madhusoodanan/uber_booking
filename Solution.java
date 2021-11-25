@@ -116,10 +116,37 @@ class Driver extends Location implements Drives, Entity {
     ArrayList<Integer> ratings;
     String cabid;
 
-    Driver(String id){
+    Driver(String id, String password){
         super();
         super.id = id;
+        this.password = password;
+        coordinate = new int [2];
     }
+
+    public static Driver join(Scanner sc, ArrayList<Driver> details) throws NoUserFoundException {
+		System.out.print("Enter username: ");
+		String username = sc.next().trim();
+
+		Driver detail;
+        
+		System.out.print("Enter password: ");
+		String password = sc.next().trim();
+
+        for(int i = 0; i < details.size(); i++){
+            detail = details.get(i);
+            if(detail.verify(username, password)) {
+		        System.out.print("successfully logged in");
+                return detail;
+            }
+        }
+        detail = new Driver(username, password);
+		details.add(detail);
+ 
+		System.out.print("successfully signed up");
+        return detail;
+
+		/* check hashmap if that user exists. if it does then login, else signup */
+	}
 
     @Override
     public float averageRating(){
@@ -252,9 +279,11 @@ class Customer extends Location implements Entity {
     String password;
     double money; 
     
-    Customer(String id){
+    Customer(String id, String password){
         super();
         super.id = id;
+        this.password = password;
+        coordinate = new int [2];
     }
     public void book(){}
     public void rate(){}
@@ -269,24 +298,35 @@ class Customer extends Location implements Entity {
     public boolean verify(String username, String password){
         return username.equals(id) && this.password.equals(password);
     }
+
+    static Customer join(Scanner sc, ArrayList<Customer> details) throws NoUserFoundException {
+		System.out.print("Enter username: ");
+		String username = sc.next().trim();
+
+		Customer detail;
+        
+		System.out.print("Enter password: ");
+		String password = sc.next().trim();
+        for(int i = 0; i < details.size(); i++){
+            detail = details.get(i);
+            if(detail.verify(username, password)) {
+		        System.out.print("successfully logged in");
+                return detail;
+            }
+        }
+
+        detail = new Customer(username, password);
+		details.add(detail);
+ 
+		System.out.print("successfully signed up");
+        return detail;
+
+		/* check hashmap if that user exists. if it does then login, else signup */
+	}
 }
 
 class Solution{
-    static <T extends Entity> T join(Scanner sc, ArrayList<T> details) throws NoUserFoundException {
-		System.out.print("Enter username: ");
-		String username = sc.next().trim();
-		
-		System.out.print("Enter password: ");
-		String password = sc.next().trim();
-
-        for(int i = 0; i < details.size(); i++){
-            T detail = details.get(i);
-            if(detail.verify(username, password)) return detail;
-
-        }
-		throw new NoUserFoundException();
-		/* check hashmap if that user exists. if it does then login, else signup */
-	}
+    
     static void menu(){
         
     }
@@ -303,7 +343,7 @@ class Solution{
 
         do {
             try {
-                cust = join(sc, customers);
+                cust = Customer.join(sc, customers);
                 tryAgain = false;
                 System.out.println("Type the destination coordinates:");
                 String destination = sc.nextLine().trim();
@@ -337,7 +377,7 @@ class Solution{
 
         do {
             try {
-                driv = join(sc, drivers);
+                driv = Driver.join(sc, drivers);
                 tryAgain = false;
                 System.out.println("Your booking:");
                 for(Booking book:Booking.bookings){
@@ -365,18 +405,6 @@ class Solution{
             }
         } while (tryAgain);
 
-        
-
-        /* try{
-            Cab cab = CabManager.getCab();
-            Booking booking = new Booking(cab.id, cust, cust, dest);
-            System.out.println("\nBooking successful");
-            System.out.println("Wait for cab");
-            sc.next();
-        } catch(NoCabFoundException e){
-            System.out.println("No cab available now :(");
-        }
-        return 0; */
     }
     public static void main(String[] args){
     	Scanner sc = new Scanner(System.in);
