@@ -52,8 +52,7 @@ class Location {
     }
 }
 
-class Landmark extends Location{
-}
+
 
 class City{
     public static ArrayList<Location> objects;
