@@ -9,14 +9,15 @@ class Global {
     public static final int speed = 10;
     public static final int numberOfCabs = 5;
     public static final int gridSize = 8;
+    public static int mod(int number){
+        return number > 0 ? number : -1 * number;
+    }
 }
 
 class Location {
-    int coordinate[2];
+    int coordinate[];
+    public String id;
 
-    int mod(int number){
-        return number > 0 ? number : -1 * number;
-    }
     Location(){
         coordinate[0] = 0;
         coordinate[1] = 0;
@@ -27,10 +28,10 @@ class Location {
     }
 
     public int distance(int x2, int y2) {
-        return mod(x2 - this.coordinate[0]) + mod(y2 - this.coordinate[1]);
+        return Global.mod(x2 - this.coordinate[0]) + Global.mod(y2 - this.coordinate[1]);
     }
     public int distance(Location location) {
-        return mod(location.coordinate[0] - this.coordinate[0]) + mod(location.coordinate[1] - this.coordinate[1]);
+        return Global.mod(location.coordinate[0] - this.coordinate[0]) + Global.mod(location.coordinate[1] - this.coordinate[1]);
     }
     public void setNewLocation(int x2, int y2){
         coordinate[0] = x2;
@@ -44,7 +45,7 @@ class Location {
         return this.coordinate[0] + " " + this.coordinate[1];
     }
     public static Location fromString(String encoding){
-        String[] outputs = encoding.split(' ');
+        String[] outputs = encoding.split(" ");
         int x = Integer.parseInt(outputs[0]);
         int y = Integer.parseInt(outputs[1]);
         return new Location(x, y);
@@ -61,34 +62,40 @@ class City{
         this.objects = new ArrayList<Location>();
     }
 
-    @Override
     public String toString(){
     	/* show the grid points, at each point show the object which are at that point 
     	   this function will be called multiple times, to show the map animation (driver moving from point A to point B with/without customer)
     	*/
+
+        String str = new String();
+
         for(int i = 0; i < Global.gridSize; i++){
             for(int j = 0; j < Global.gridSize; j++){
-                StringBuffer str = new StringBuffer();
                 str += "*";
                 for(Location obj:this.objects){
                     if(obj.coordinate[0] == i && obj.coordinate[1] == j){
                         str += "," + obj.id;
                     }
                 }
-                System.out.print(str + "\t\t");
+                str += "\t\t";
             }
-            System.out.println("");
+            str += "\n";
         }
+        return str;
     }
 
     public void addObject(Location obj){
         objects.add(obj);
     }
-    public void update(){
-        /* wait for 1 second */
-        toString();
+    public static void update(){
+        /* this line clears the terminal */
+        System.out.print("\033[H\033[2J");
+		System.out.flush();
+
+        this.toString();
         try
         {
+            /* wait for 1 second */
             Thread.sleep(1000);
         }
         catch(InterruptedException ex)
@@ -101,18 +108,16 @@ class City{
 interface Drives {
     public float averageRating();
     public void rate(int rate);
+    public void drive(Location location);
 }
 
-class Driver{
+class Driver extends Location implements Drives {
     String id;
     String password;
     ArrayList<Integer> ratings;
-    String cabUniqueRegistration;
+    String cabid;
 
-    public void retrieveBooking(){
-        /* make a file for a driver
-           and store his bookings in that */
-    }
+    @Override
     public float averageRating(){
         float rating = 0;
         for(int i:ratings){
@@ -120,16 +125,33 @@ class Driver{
         }
         return rating;
     }
+
+    @Override
     public void rate(int rate){
         ratings.add(rate);
     }
-    public bool login(String id, String passowrd){
+    public boolean login(String id, String passowrd){
         return id == this.id && password == this.password;
+    }
+
+    @Override
+    public void drive(Location destination){
+        while(this.distance(this.coordinate[0], destination.coordinate[1]) != this.distance(bk.destination)){
+            City.update();
+            int update = (destination.coordinate[0] > this.coordinate[0]) ? 1 : -1;
+            this.setNewLocation(this.coordinate[0] + update, this.coordinate[1]);
+        }
+
+        while(this.distance(bk.destination) != 0){
+            City.update();
+            int update = (destination.coordinate[1] > this.coordinate[1]) ? 1 : -1;
+            this.setNewLocation(this.coordinate[0], this.coordinate[1] + update);
+        }
     }
 }
 
 class Cab extends Location {
-    public String uniqueRegistration;
+    public Customer cust;
     public int ratingCount;
     public float ratingAverage;
     public boolean busy;
@@ -139,11 +161,13 @@ class Cab extends Location {
         this.ratingAverage = 0;
         this.ratingCount = 0;
     }
-    public void searchBookings(){
-        
+    public void occupy(Customer cust){
+        this.cust = cust;
+        busy = true;
     }
-    public void toggleOccupied(){
-        busy = !busy;
+    public void free(){
+        this.cust = null;
+        busy = false;
     }
     public boolean isOccupied(){
         return busy;
@@ -185,6 +209,7 @@ class Booking{
         this.customer = customer;
         this.pickup = pickup;
         this.destination = destination;
+        this.generateFare();
     }
 
     public void setDestination(Location destination){
@@ -198,23 +223,15 @@ class Booking{
     }
 
     public int generateFare(){
-        int fare;
-        /* do calculations for fare */
-
-        saveFare(fare);
+        saveFare(CabManager(this.pickup, this.destination));
     }
     public void saveBooking(){
-        /* save it in a file named by the driver's name */
-        File file = new File("bookings/" + cab.uniqueRegistration + ".txt");
-        if (!file.exists()) { 
-            file.createNewFile();
-            FileWriter writer = new FileWriter(file);
-            writer.write("Test data");
-            writer.close();
+        try {
+            Booking.bookings.add(this);
             System.out.println("Booking successful");
-        } else {
+        } catch(Exception e) {
             System.out.println("Cab booked already :(");
-        } 
+        }
     }
     public String toString(){
         return cabId + " " + customer.id + " " + pickup.toString() + " " + destination.toString() + " " + fare;
@@ -238,7 +255,7 @@ class Customer extends Location {
     }
     public void book(){}
     public void rate(){}
-    public bool login(String id, String passowrd){
+    public boolean login(String id, String passowrd){
         return id == this.id && password == this.password;
     }
 }
@@ -259,9 +276,6 @@ class Solution{
 		throw new NoUserFoundException();
 		/* check hashmap if that user exists. if it does then login, else signup */
 	}
-    static void help(){
-        /* print halp message */
-    }
     static void menu(){
         
     }
@@ -275,7 +289,7 @@ class Solution{
     static int handleCustomer(Scanner sc, ArrayList<Customer> customers, ArrayList<Booking> bookings){
         /* handle the customer */
         Customer cust;
-        bool tryAgain = false;
+        boolean tryAgain = false;
 
         do {
             try {
@@ -292,21 +306,24 @@ class Solution{
 
         try{
             Cab cab = CabManager.getCab();
-            Booking booking = new Booking(cab.uniqueRegistration, cust, cust, dest);
+            Booking booking = new Booking(cab.id, cust, cust, dest);
             System.out.println("\nBooking successful");
             System.out.println("Wait for cab");
-            System.out.println("Press any key to logout");
-            sc.next();
+            System.out.println("Press 2 to logout, or q to quit the program");
+
+            if(sc.next().trim().equals("q")) System.exit(0);
+
         } catch(NoCabFoundException e){
             System.out.println("No cab available now :(");
         }
         return 0;
         /* making a booking object */
     }
-    static void handleDriver(ArrayList<Driver> drivers, ArrayList<Booking> bookings){
+    static void handleDriver(Scanner sc, ArrayList<Driver> drivers, ArrayList<Booking> bookings){
         /* handle the driver and the cab */
         Driver driv;
-        bool tryAgain = false;
+        Booking bk;
+        boolean tryAgain = false;
 
         do {
             try {
@@ -317,22 +334,33 @@ class Solution{
             }
         } while (tryAgain && cust != null);
 
-        System.out.println("Your bookings:");
-        for
-        String destination = sc.nextLine().trim();
-        Location dest = Location.fromString(destination);
+        System.out.println("Your booking:");
+        for(Booking bk:Booking.bookings){
+            if(bk.cabId == driv.id) System.out.println(bk);
+        }
+        System.out.println("");
+        System.out.print("Confirm mission? [y/n]");
+        if(sc.next().trim().equals("n")) return;
 
-        try{
+        driv.drive(bk.pickup);
+        driv.drive(bk.destination);
+
+        System.out.println("Destination reached");
+        System.out.println("Press 2 to logout, or q to quit the program");
+
+        if(sc.next().trim().equals("q")) System.exit(0);
+        
+
+        /* try{
             Cab cab = CabManager.getCab();
-            Booking booking = new Booking(cab.uniqueRegistration, cust, cust, dest);
+            Booking booking = new Booking(cab.id, cust, cust, dest);
             System.out.println("\nBooking successful");
             System.out.println("Wait for cab");
-            System.out.println("Press any key to logout");
             sc.next();
         } catch(NoCabFoundException e){
             System.out.println("No cab available now :(");
         }
-        return 0;
+        return 0; */
     }
     public static void main(String[] args){
     	Scanner sc = new Scanner(System.in);
@@ -362,7 +390,7 @@ class Solution{
             if(isCustomer) handleCustomer(sc, customers, bookings);
             else handleDriver(sc, drivers, bookings);
 
-        } while (option != 2);
+        } while (true);
     }
 }
 
