@@ -1,7 +1,10 @@
 import java.io.*;
 import java.util.*;
-
+import java.time.LocalTime;
 /* maybe make constants out of it */
+
+class NoUserFoundException extends Exception{}  
+class NoCabFoundException extends Exception{}
 class Global {
     public static final int speed = 10;
     public static final int numberOfCabs = 5;
@@ -9,10 +12,18 @@ class Global {
 }
 
 class Location {
-    int coordinate[];
+    int coordinate[2];
 
     int mod(int number){
         return number > 0 ? number : -1 * number;
+    }
+    Location(){
+        coordinate[0] = 0;
+        coordinate[1] = 0;
+    }
+    Location(int x, int y){
+        coordinate[0] = x;
+        coordinate[1] = y;
     }
 
     public int distance(int x2, int y2) {
@@ -32,14 +43,24 @@ class Location {
     public String toString(){
         return this.coordinate[0] + " " + this.coordinate[1];
     }
+    public static Location fromString(String encoding){
+        String[] outputs = encoding.split(' ');
+        int x = Integer.parseInt(outputs[0]);
+        int y = Integer.parseInt(outputs[1]);
+        return new Location(x, y);
+    }
 }
 
 class Landmark extends Location{
 }
 
 class City{
-    ArrayList<Location> objects;
+    public ArrayList<Location> objects;
     
+    City(){
+        this.objects = new ArrayList<Location>();
+    }
+
     @Override
     public String toString(){
     	/* show the grid points, at each point show the object which are at that point 
@@ -121,13 +142,33 @@ class Cab extends Location {
     public void searchBookings(){
         
     }
+    public void toggleOccupied(){
+        busy = !busy;
+    }
+    public boolean isOccupied(){
+        return busy;
+    }
 }
 
-class Cab_manager {
-    public static Cab[] cabs;
-    public static float fare(Location pickup, Location destination) {
-        fare = (pickup.distance(destination)) * (total - free)cabs * a time based variable
-        return 0;
+class CabManager {
+    public static ArrayList<Cab> cabs;
+    CabManager(){
+        this.cabs = new ArrayList<Cab>();
+    }
+    public static double fare(Location pickup, Location destination) {
+        int busy = 0;
+        double rate = LocalTime.now().isAfter(LocalTime.of(16, 0, 0)) ? 0.2 : 0.1;
+        for(Cab cab:cabs){
+            if(cab.isOccupied()) busy += 1;
+        }
+        fare = (pickup.distance(destination)) * busy * rate;
+        return fare;
+    }
+    public static Cab getCab() throws NoCabFoundException{
+        for( Cab cab:cabs ){
+            if(!cab.isOccupied()) return cab;
+        }
+        throw new NoCabFoundException();
     }
 }
 
@@ -177,11 +218,11 @@ class Booking{
     public String toString(){
         return cabId + " " + customer.id + " " + pickup.toString() + " " + destination.toString() + " " + fare;
     }
+
     public static Booking fromString(String encoding){
         String[] properties =  encoding.split(" ");
         Customer customer = new Customer(properties[1]);
         Location destination = new Location();
-        Location pickup = new 
     }
 }
 
@@ -202,32 +243,60 @@ class Customer extends Location {
 }
 
 class Solution{
-	public static void join(Scanner sc, HashMap<String, String> details){
+    static <T> T join(Scanner sc, ArrayList<T> details) throws NoUserFoundException {
 		System.out.print("Enter username: ");
-		String username = sc.nextInt();
+		String username = sc.next().trim();
 		
 		System.out.print("Enter password: ");
-		String password = sc.nextInt();
-		
+		String password = sc.next().trim();
+
+        for(int i = 0; i < details.size(); i++){
+            T detail = details.get(i);
+            if(detail.username.equals(username) && detail.password.equals(password)) return detail;
+
+        }
+		throw new NoUserFoundException();
 		/* check hashmap if that user exists. if it does then login, else signup */
 	}
-    public static void help(){
+    static void help(){
         /* print halp message */
     }
-    public static void menu(){
-
+    static void menu(){
+        
     }
-    public static boolean intro(Scanner sc){
+    static boolean intro(Scanner sc){
         System.out.println("Join as? [Driver (D) / User(U)]");
         System.out.print(">");
 
         char reply = sc.next();
         return (reply == 'D' || reply == 'd');
     }
-    public static void handleCustomer(Customer customer){
+    static void handleCustomer(Scanner sc, ArrayList<Customer> customers, ArrayList<Booking> bookings){
         /* handle the customer */
+        Customer cust;
+        bool tryAgain = false;
+
+        do {
+            try {
+                cust = join(sc, customers);
+                tryAgain = false;
+            } catch (NoUserFoundException e){
+                tryAgain = true;
+            }
+        } while (tryAgain && cust != null);
+
+        System.out.println("Type the destination coordinates:");
+        String destination = sc.nextLine().trim();
+        Location dest = Location.fromString(destination);
+        try{
+            
+            Booking booking = new Booking();
+        } catch(NoCabFoundException e){
+            System.out.println("No cab available now :(");
+        }
+        /* making a booking object */
     }
-    public static void handleDriver(Driver driver){
+    static void handleDriver(ArrayList<Driver> drivers, ArrayList<Booking> bookings){
         /* handle the driver and the cab */
     }
     public static void main(String[] args){
@@ -235,7 +304,8 @@ class Solution{
     	int option = 0;
     	ArrayList<Customer> customers = new ArrayList<Customer>();
         ArrayList<Driver> drivers = new ArrayList<Customer>();
-    	/* option as 0 -> driver, 1 -> customer, 2 means exit */
+        ArrayList<Booking> bookings = new ArrayList<Booking>();
+    
 	    do{
             /* make the login/signup page 
                
@@ -250,8 +320,12 @@ class Solution{
                2. show them the booking procedure (accept destination, pay fare)
                3. 
                
-               show help also, if user is confused*/
+               show help also, if user is confused
+            */
 
+            boolean isCustomer = intro();
+            if(isCustomer) handleCustomer(sc, customers, bookings);
+            else handleDriver(sc, drivers, bookings);
 
         } while (option != 2);
     }

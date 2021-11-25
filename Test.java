@@ -1,14 +1,17 @@
 import java.util.*;
 
 class Test {
-	public static int calc(int number){
-		if(number == 1) return 3;
-		else{
-			int var = ((number/3) * calc(number - 3));
-			return var;
-		}
+	static <T> T identity(T obj)  {
+		return obj;
+		/* check hashmap if that user exists. if it does then login, else signup */
 	}
+
 	public static void main(String[] args){
-		System.out.println(calc(300));
+		int integer = identity(300);
+		double floating = identity(30.0);
+
+		/* printing */
+		System.out.println(integer);
+		System.out.println(floating);
 	}
 }
