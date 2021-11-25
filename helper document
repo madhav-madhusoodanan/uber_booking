@@ -1,0 +1,22 @@
+Global: This class contains all the variables assumed such as what is the speed of the cab, what are the max cabs available and what is the grid size of the map. 
+
+Location: This class contains methods to set different locations such as destination and pick-up point. It calculates the distance between the locations through the coordinates in the distance method. The class also has a method to keep on updating the new locations of customers to pick up from and drop at through the setNewLocation method. 
+
+City: This class forms the city grid. This gird is used as the frame of reference for the coordinates that are used as various locations for pick up and destinations.
+
+Drives: This class is meant to store Drive ratings and the fare for cab. 
+
+Driver: This class methods stores the information about the driver, such as driver id, average rating of the driver, driver bookings. It keeps track of the ratings through an arraylist. It also has a method which is the login for the driver. The login is based on the driver ID and password. 
+
+Cab: This class stores the registration number of the drive and the status of the cab if its already catering to a customer or not. It returns busy if it is already on a ride and not busy if it is free to provide a ride 
+
+Cabmanager: This class manages how much is the fare charged for the ride, and maintains and manages the cabs. The fare is charged on the basis of what time of day it is, nighttime is charged double than as of day time. It calls the methods to determine if the cab is busy or not. It also has an exception in a case where the cab is not free. It also keeps on updating what cab is busy. The setDestination and setPickup method stores the destination and pick up points respectively. 
+
+Booking: This class manages all the details for a booking done by a customer such as what cab ID customer is going to travel from, customer details, pick up point and destination. The booking method stores all the information. It has methods to calculate and set the fare for the ride. It has methods to save and confirm if a booking is successful. The saveBooking method outputs the confirmation if the booking was successful. 
+
+Customer: This class has methods to store customer credentials as customer ID and that particular customer’s password. It also verifies the login password 
+
+Solution: This class has methods which handles all the information required for a customer to make a booking and for the cab driver to receive it. It also has provisions to log out from the specific accounts. It also has the intro method which helps a new driver/customer to set up their account. The handleCustomer verifies if the customer already exists and if the booking made by customer was successful or not by checking if cabs are available. The handleDriver method verifies if the driver account exists or not and then rallies the information of the rides of the driver. 
+
+Main: This is the class which also indirectly acts as an interface between the customer and the code and, the code and driver. It has arraylists of the customer, drivers and bookings.
+
