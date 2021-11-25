@@ -3,8 +3,9 @@ import java.util.*;
 
 /* maybe make constants out of it */
 class Global {
-    public static int speed = 10;
-    public static int numberOfCabs = 5;
+    public static final int speed = 10;
+    public static final int numberOfCabs = 5;
+    public static final int gridSize = 8;
 }
 
 class Location {
@@ -37,13 +38,42 @@ class Landmark extends Location{
 }
 
 class City{
-    Location[] objects;
+    ArrayList<Location> objects;
     
     @Override
     public String toString(){
     	/* show the grid points, at each point show the object which are at that point 
     	   this function will be called multiple times, to show the map animation (driver moving from point A to point B with/without customer)
     	*/
+        for(int i = 0; i < Global.gridSize; i++){
+            for(int j = 0; j < Global.gridSize; j++){
+                StringBuffer str = new StringBuffer();
+                str += "*";
+                for(Location obj:this.objects){
+                    if(obj.coordinate[0] == i && obj.coordinate[1] == j){
+                        str += "," + obj.id;
+                    }
+                }
+                System.out.print(str + "\t\t");
+            }
+            System.out.println("");
+        }
+    }
+
+    public void addObject(Location obj){
+        objects.add(obj);
+    }
+    public void update(){
+        /* wait for 1 second */
+        toString();
+        try
+        {
+            Thread.sleep(1000);
+        }
+        catch(InterruptedException ex)
+        {
+            Thread.currentThread().interrupt();
+        }
     }
 }
 
@@ -56,6 +86,7 @@ class Driver{
     String id;
     String password;
     ArrayList<Integer> ratings;
+    String cabUniqueRegistration;
 
     public void retrieveBooking(){
         /* make a file for a driver
@@ -81,6 +112,7 @@ class Cab extends Location {
     public int ratingCount;
     public float ratingAverage;
     public boolean busy;
+    String driverId;
 
     Cab() {
         this.ratingAverage = 0;
@@ -93,8 +125,8 @@ class Cab extends Location {
 
 class Cab_manager {
     public static Cab[] cabs;
-    public static float fare() {
-        // fare = distance * (total - free)cabs * a time based variable
+    public static float fare(Location pickup, Location destination) {
+        fare = (pickup.distance(destination)) * (total - free)cabs * a time based variable
         return 0;
     }
 }
@@ -150,9 +182,7 @@ class Booking{
         Customer customer = new Customer(properties[1]);
         Location destination = new Location();
         Location pickup = new 
-
     }
-
 }
 
 class Customer extends Location {
@@ -181,15 +211,31 @@ class Solution{
 		
 		/* check hashmap if that user exists. if it does then login, else signup */
 	}
-    public static void intro(){
+    public static void help(){
+        /* print halp message */
+    }
+    public static void menu(){
+
+    }
+    public static boolean intro(Scanner sc){
         System.out.println("Join as? [Driver (D) / User(U)]");
         System.out.print(">");
+
+        char reply = sc.next();
+        return (reply == 'D' || reply == 'd');
+    }
+    public static void handleCustomer(Customer customer){
+        /* handle the customer */
+    }
+    public static void handleDriver(Driver driver){
+        /* handle the driver and the cab */
     }
     public static void main(String[] args){
     	Scanner sc = new Scanner(System.in);
     	int option = 0;
-    	
-    	/* option as 2 means exit */
+    	ArrayList<Customer> customers = new ArrayList<Customer>();
+        ArrayList<Driver> drivers = new ArrayList<Customer>();
+    	/* option as 0 -> driver, 1 -> customer, 2 means exit */
 	    do{
             /* make the login/signup page 
                
